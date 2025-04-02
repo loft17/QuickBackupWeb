@@ -4,6 +4,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const fse = require('fs-extra');
+const os = require('os'); // Para obtener métricas del sistema
 const winston = require('winston');
 const checkDiskSpace = require('check-disk-space').default;
 const pLimit = require('p-limit'); // Para controlar la concurrencia
@@ -13,7 +14,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const MEDIA_PATH = process.env.MEDIA_PATH || '/media/joseluis';
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
-// Algoritmo para checksum: Puedes cambiarlo a 'md5', 'sha256' o usar 'blake2b512'
+// Algoritmo para checksum: 'blake2b512' es una opción eficiente; también puedes usar 'md5' o 'sha256'
 const CHECKSUM_ALGO = process.env.CHECKSUM_ALGO || 'blake2b512';
 
 // Configurar logger con winston
@@ -38,12 +39,24 @@ let backupStatus = {
   errors: [],
   completed: false,
   destinationFolder: '',
-  // Propiedad para almacenar los resultados de la verificación
   verification: null,
   integrityVerified: false
 };
 let backupInProgress = false;
 let sseClients = [];
+
+/**
+ * Función para ajustar dinámicamente la concurrencia según la carga actual del sistema.
+ * Se utiliza la carga promedio de 1 minuto (os.loadavg()[0]).
+ * maxConcurrency es el valor máximo deseado.
+ */
+function getDynamicConcurrency(maxConcurrency) {
+  const load = os.loadavg()[0];
+  // Si la carga es baja (< 0.5) se usa el máximo; si es alta se reduce hasta usar 1 tarea.
+  if (load < 0.5) return maxConcurrency;
+  if (load < 1) return Math.max(1, Math.floor(maxConcurrency * (1 - load)));
+  return 1;
+}
 
 // Función para enviar mensajes SSE a todos los clientes conectados
 function sendSseMessage(data) {
@@ -119,13 +132,12 @@ app.get('/drives', (req, res) => {
 });
 
 /**
- * Endpoint para iniciar el proceso de backup y posterior verificación de integridad.
- * Se verifica que:
+ * Endpoint para iniciar el proceso de backup y verificación de integridad.
+ * Se valida que:
  *   - Las unidades de origen y destino sean diferentes.
  *   - No haya ya un backup en curso.
- *   - Se calcule el tamaño total de los ficheros a copiar.
- *   - Se compare el espacio libre en la unidad de destino.
- *   - Al finalizar la copia, se verifica la integridad de cada archivo.
+ *   - Se tenga espacio suficiente en el destino.
+ *   - Al finalizar, se persisten los metadatos del backup.
  */
 app.post('/copy', async (req, res) => {
   const { source, destination } = req.body;
@@ -191,10 +203,15 @@ app.post('/copy', async (req, res) => {
     return res.status(500).send(`Error al listar ficheros: ${err.message}`);
   }
 
-  // Iniciar el proceso asíncrono de copia de forma concurrente
+  // Registrar la hora de inicio para calcular la duración del backup
+  const startTime = Date.now();
+
+  // Iniciar el proceso asíncrono de copia de forma concurrente con concurrencia dinámica
   (async () => {
-    // Limitar a 5 tareas simultáneas (ajustable según necesidades)
-    const limit = pLimit(5);
+    // Ajustar concurrencia para la copia según la carga actual (valor máximo deseado: 5)
+    const copyConcurrency = getDynamicConcurrency(5);
+    const limit = pLimit(copyConcurrency);
+    logger.info(`Iniciando copia con concurrencia dinámica: ${copyConcurrency}`);
     const copyTasks = filesToCopy.map(fileObj => limit(async () => {
       const file = fileObj.filePath;
       // Calcular la ruta relativa para conservar la estructura de directorios
@@ -212,17 +229,18 @@ app.post('/copy', async (req, res) => {
       // Enviar actualización de progreso vía SSE
       sendSseMessage(backupStatus);
     }));
-
     await Promise.all(copyTasks);
     logger.info(`Backup completado. Copiados: ${backupStatus.copiedFiles}, Errores: ${backupStatus.errors.length}`);
     sendSseMessage(backupStatus);
 
-    // Nueva fase: verificación de integridad usando streams y p-limit para concurrencia moderada
+    // Nueva fase: verificación de integridad usando streams y concurrencia dinámica
     logger.info('Iniciando verificación de integridad de archivos');
     backupStatus.verification = { total: filesToCopy.length, verified: 0, mismatches: [] };
 
-    // Limitar a 2 tareas simultáneas en la verificación, para no saturar la Raspberry Pi
-    const limitVerification = pLimit(2);
+    // Ajustar concurrencia para la verificación (valor máximo deseado: 2)
+    const verifyConcurrency = getDynamicConcurrency(2);
+    const limitVerification = pLimit(verifyConcurrency);
+    logger.info(`Iniciando verificación con concurrencia dinámica: ${verifyConcurrency}`);
     const verificationTasks = filesToCopy.map(fileObj => limitVerification(async () => {
       const file = fileObj.filePath;
       const relativePath = path.relative(sourcePath, file);
@@ -251,6 +269,29 @@ app.post('/copy', async (req, res) => {
 
     backupStatus.completed = true;
     backupInProgress = false;
+
+    // Calcular la duración total del backup
+    const duration = Date.now() - startTime;
+
+    // Persistir metadatos del backup en un archivo JSON
+    const backupMetadata = {
+      date: new Date().toISOString(),
+      source,
+      destination,
+      destinationFolder: destPath,
+      totalFiles: backupStatus.totalFiles,
+      copiedFiles: backupStatus.copiedFiles,
+      errors: backupStatus.errors,
+      verification: backupStatus.verification,
+      integrityVerified: backupStatus.integrityVerified,
+      durationMs: duration
+    };
+
+    const logDir = path.join(__dirname, 'backup_logs');
+    await fse.ensureDir(logDir);
+    const logFile = path.join(logDir, `backup-${Date.now()}.json`);
+    await fs.promises.writeFile(logFile, JSON.stringify(backupMetadata, null, 2));
+    logger.info(`Metadatos del backup guardados en ${logFile}`);
   })();
 
   res.send('Proceso de backup iniciado.');
