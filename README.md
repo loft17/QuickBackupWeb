@@ -1,4 +1,4 @@
-# Backup de Unidades - Aplicación de Backup y Verificación
+# BackUp - WebTravel
 
 Esta aplicación está diseñada para realizar backups de ficheros (por ejemplo, fotos) desde una unidad de origen a una unidad de destino, con verificación de integridad, manejo de concurrencia dinámico y un diseño moderno y responsivo. Está pensada para entornos con recursos limitados, como una Raspberry Pi, donde se leen archivos desde una tarjeta SD y se copian a un disco HDD.
 
