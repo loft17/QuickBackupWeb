@@ -1,0 +1,16 @@
+{
+  "date": "2025-04-02T08:45:36.973Z",
+  "source": "disk2",
+  "destination": "disk1",
+  "destinationFolder": "/media/joseluis/disk1/20250402_1045",
+  "totalFiles": 8,
+  "copiedFiles": 8,
+  "errors": [],
+  "verification": {
+    "total": 8,
+    "verified": 8,
+    "mismatches": []
+  },
+  "integrityVerified": true,
+  "durationMs": 20
+}
