@@ -25,14 +25,25 @@ Esta aplicación está diseñada para realizar backups de ficheros (por ejemplo,
 
 1. Clona el repositorio o copia el código fuente en tu dispositivo.
 2. Instala las dependencias ejecutando:
-
    ```bash
    npm install
-3. Crea un archivo .env en la raíz del proyecto con las siguientes variables (ajústalas según tus necesidades):
+   ```
 
+3. Crea un archivo .env en la raíz del proyecto con las siguientes variables (ajústalas según tus necesidades):
    ```env
    PORT=3000
-MEDIA_PATH=/media/joseluis
-LOG_LEVEL=info
-CHECKSUM_ALGO=blake2b512
+   MEDIA_PATH=/media/joseluis
+   LOG_LEVEL=info
+   CHECKSUM_ALGO=blake2b512
+   ```
+
+## USO
+1. Inicia la aplicación:
+   ```bash
+   npm start
+   ```
+2. Abre tu navegador en http://localhost:3000 (o la IP de tu Raspberry Pi) para acceder a la interfaz.
+3. Selecciona la unidad de origen y la unidad de destino, y pulsa "Iniciar Backup".
+   Durante el proceso, se mostrará una barra de progreso, el número de archivos copiados, el tiempo estimado restante y notificaciones visuales.
+4. Una vez finalizado el backup, podrás ver el resumen del backup pulsando el botón "Ver Resumen" y consultar el historial de backups realizados.
 
