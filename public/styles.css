@@ -1,0 +1,179 @@
+/* Variables de colores y configuración */
+:root {
+    --primary-color: #6200ee;
+    --secondary-color: #03dac6;
+    --background-light: #f2f2f2;
+    --background-dark: #121212;
+    --text-light: #333333;
+    --text-dark: #f2f2f2;
+    --card-bg-light: #ffffff;
+    --card-bg-dark: #1e1e1e;
+    --progress-bg: #ddd;
+    --progress-color: #03dac6;
+  }
+  
+  /* Reset básico */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Layout del body utilizando grid para separar el contenido principal del footer */
+  body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--background-light);
+    color: var(--text-light);
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    transition: background-color 0.3s, color 0.3s;
+    padding: 20px;
+    position: relative;
+  }
+  body.dark {
+    background-color: var(--background-dark);
+    color: var(--text-dark);
+  }
+  
+  /* Wrapper para centrar el contenido principal */
+  .wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Contenedor principal */
+  .container {
+    background-color: var(--card-bg-light);
+    padding: 20px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: background-color 0.3s;
+  }
+  body.dark .container {
+    background-color: var(--card-bg-dark);
+  }
+  
+  header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  header h1 {
+    font-size: 1.5rem;
+    font-weight: 500;
+  }
+  
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  form > div {
+    display: flex;
+    flex-direction: column;
+  }
+  label {
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+  }
+  select, button {
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+    transition: background-color 0.3s, border-color 0.3s;
+  }
+  body.dark select, body.dark button {
+    background-color: #2c2c2c;
+    border-color: #555;
+    color: var(--text-dark);
+  }
+  button {
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+  }
+  button:hover {
+    opacity: 0.9;
+  }
+  
+  .progress-container {
+    margin-top: 20px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .progress-bar {
+    width: 100%;
+    background-color: var(--progress-bg);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 20px;
+    width: 0%;
+    background-color: var(--progress-color);
+    text-align: center;
+    line-height: 20px;
+    color: #fff;
+    transition: width 0.3s;
+  }
+  .progress-text {
+    font-size: 0.9rem;
+    text-align: center;
+  }
+  .backup-completed {
+    text-align: center;
+    margin-top: 20px;
+    display: none;
+  }
+  
+  /* Botón de cambio de tema */
+  .toggle-theme {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: background-color 0.3s;
+  }
+  .toggle-theme:hover {
+    opacity: 0.8;
+  }
+  
+  /* Responsive: Para orientación horizontal */
+  @media (orientation: landscape) {
+    .container {
+      max-width: 500px;
+      padding: 30px;
+    }
+  }
+  
+  /* Footer: Ocupa todo el ancho y queda abajo */
+  footer {
+    text-align: center;
+    padding: 10px;
+    /* background-color: var(--card-bg-light); */
+    /* border-top: 1px solid #ccc; */
+    width: 100%;
+  }
+  body.dark footer {
+    background-color: var(--card-bg-dark);
+    border-color: #555;
+  }
+  
