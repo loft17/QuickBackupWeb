@@ -44,6 +44,7 @@ Esta aplicación está diseñada para realizar backups de ficheros (por ejemplo,
    ```
 2. Abre tu navegador en http://localhost:3000 (o la IP de tu Raspberry Pi) para acceder a la interfaz.
 3. Selecciona la unidad de origen y la unidad de destino, y pulsa "Iniciar Backup".
+   
    Durante el proceso, se mostrará una barra de progreso, el número de archivos copiados, el tiempo estimado restante y notificaciones visuales.
 4. Una vez finalizado el backup, podrás ver el resumen del backup pulsando el botón "Ver Resumen" y consultar el historial de backups realizados.
 
