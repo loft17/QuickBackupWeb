@@ -1,0 +1,27 @@
+{
+  "name": "public_html",
+  "version": "1.0.0",
+  "description": "est",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/loft17/BackupTravelWeb.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/loft17/BackupTravelWeb/issues"
+  },
+  "homepage": "https://github.com/loft17/BackupTravelWeb#readme",
+  "dependencies": {
+    "check-disk-space": "^3.4.0",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "fs-extra": "^11.3.0",
+    "winston": "^3.17.0"
+  }
+}

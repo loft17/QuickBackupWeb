@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Backup de Unidades - Moderno</title>
+  <!-- Fuente moderna -->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap" rel="stylesheet">
+  <style>
+    /* Variables de colores y configuración */
+    :root {
+      --primary-color: #6200ee;
+      --secondary-color: #03dac6;
+      --background-light: #f2f2f2;
+      --background-dark: #121212;
+      --text-light: #333333;
+      --text-dark: #f2f2f2;
+      --card-bg-light: #ffffff;
+      --card-bg-dark: #1e1e1e;
+      --progress-bg: #ddd;
+      --progress-color: #03dac6;
+    }
+    /* Reset básico */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    /* Estilos base */
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: var(--background-light);
+      color: var(--text-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      transition: background-color 0.3s, color 0.3s;
+      padding: 20px;
+      position: relative;
+    }
+    body.dark {
+      background-color: var(--background-dark);
+      color: var(--text-dark);
+    }
+    .container {
+      background-color: var(--card-bg-light);
+      padding: 20px;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      transition: background-color 0.3s;
+    }
+    body.dark .container {
+      background-color: var(--card-bg-dark);
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 500;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    form > div {
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      font-size: 0.9rem;
+      margin-bottom: 5px;
+    }
+    select, button {
+      padding: 12px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #fff;
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+    body.dark select, body.dark button {
+      background-color: #2c2c2c;
+      border-color: #555;
+      color: var(--text-dark);
+    }
+    button {
+      background-color: var(--primary-color);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    .progress-container {
+      margin-top: 20px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .progress-bar {
+      width: 100%;
+      background-color: var(--progress-bg);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 20px;
+      width: 0%;
+      background-color: var(--progress-color);
+      text-align: center;
+      line-height: 20px;
+      color: #fff;
+      transition: width 0.3s;
+    }
+    .progress-text {
+      font-size: 0.9rem;
+      text-align: center;
+    }
+    .backup-completed {
+      text-align: center;
+      margin-top: 20px;
+      display: none;
+    }
+    /* Botón de cambio de tema */
+    .toggle-theme {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: background-color 0.3s;
+    }
+    .toggle-theme:hover {
+      opacity: 0.8;
+    }
+    /* Responsive: Para orientación horizontal */
+    @media (orientation: landscape) {
+      .container {
+        max-width: 500px;
+        padding: 30px;
+      }
+    }
+  </style>
+</head>
+<body class="light">
+  <button class="toggle-theme" onclick="toggleTheme()">🌙</button>
+  <div class="container">
+    <header>
+      <h1>Backup de Unidades</h1>
+    </header>
+    <form id="backupForm">
+      <div>
+        <label for="source">Unidad de Origen:</label>
+        <select id="source" name="source" required>
+          <option value="">Selecciona una unidad</option>
+        </select>
+      </div>
+      <div>
+        <label for="destination">Unidad de Destino:</label>
+        <select id="destination" name="destination" required>
+          <option value="">Selecciona una unidad</option>
+        </select>
+      </div>
+      <button type="submit">Iniciar Backup</button>
+    </form>
+    <div class="progress-container" id="progressContainer">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill">0%</div>
+      </div>
+      <p class="progress-text" id="progressText">0 de 0 archivos copiados.</p>
+    </div>
+    <div class="backup-completed" id="backupCompleted">
+      <button onclick="window.location.href='/summary'">Ver Resumen</button>
+    </div>
+  </div>
+  <script>
+    // Alterna entre tema oscuro/claro
+    function toggleTheme() {
+      document.body.classList.toggle('dark');
+      document.body.classList.toggle('light');
+      const themeBtn = document.querySelector('.toggle-theme');
+      themeBtn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+    }
+
+    // Cargar las unidades disponibles
+    fetch('/drives')
+      .then(response => response.json())
+      .then(data => {
+        const sourceSelect = document.getElementById('source');
+        const destSelect = document.getElementById('destination');
+        data.drives.forEach(drive => {
+          const option1 = document.createElement('option');
+          option1.value = drive;
+          option1.textContent = drive;
+          sourceSelect.appendChild(option1);
+
+          const option2 = document.createElement('option');
+          option2.value = drive;
+          option2.textContent = drive;
+          destSelect.appendChild(option2);
+        });
+      })
+      .catch(error => console.error('Error al cargar las unidades:', error));
+
+    // Manejo del formulario para iniciar el backup
+    const backupForm = document.getElementById('backupForm');
+    backupForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const source = document.getElementById('source').value;
+      const destination = document.getElementById('destination').value;
+      if (!source || !destination) {
+        alert('Debes seleccionar ambas unidades.');
+        return;
+      }
+      if (source === destination) {
+        alert('La unidad de origen y destino no pueden ser la misma.');
+        return;
+      }
+      document.getElementById('progressContainer').style.display = 'flex';
+      startBackup(source, destination);
+    });
+
+    // Función para iniciar el backup y recibir progreso vía SSE
+    function startBackup(source, destination) {
+      const evtSource = new EventSource('/progress');
+      evtSource.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        const total = data.totalFiles;
+        const copied = data.copiedFiles;
+        const percent = total ? Math.floor((copied / total) * 100) : 0;
+        const progressFill = document.getElementById('progressFill');
+        progressFill.style.width = percent + '%';
+        progressFill.textContent = percent + '%';
+        document.getElementById('progressText').textContent = `${copied} de ${total} archivos copiados.`;
+        if (data.completed) {
+          evtSource.close();
+          document.getElementById('backupCompleted').style.display = 'block';
+        }
+      };
+
+      fetch('/copy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source, destination })
+      })
+      .then(response => response.text())
+      .then(message => console.log(message))
+      .catch(error => console.error('Error:', error));
+    }
+  </script>
+</body>
+</html>
